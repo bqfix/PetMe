@@ -15,10 +15,13 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,8 +29,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetEntry;
+import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -52,6 +57,8 @@ public class EditorActivity extends AppCompatActivity {
      */
     private int mGender = 0;
 
+    private PetDbHelper mDbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +71,8 @@ public class EditorActivity extends AppCompatActivity {
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
         setupSpinner();
+
+        mDbHelper = new PetDbHelper(this);
     }
 
     /**
@@ -119,7 +128,7 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                insertData();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
@@ -132,5 +141,49 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    void insertData() {
+        //Error toast
+        Toast errorToast = Toast.makeText(this, "An error occured.  Please check your inputs.", Toast.LENGTH_SHORT);
+
+        //Success toast
+        Toast successToast = Toast.makeText(this, "Pet saved.", Toast.LENGTH_SHORT);
+
+        //Get values from EditTexts
+        String name = mNameEditText.getText().toString().trim();
+        String breed = mBreedEditText.getText().toString().trim();
+        String stringWeight = mWeightEditText.getText().toString().trim();
+        int weight = 0;
+        try {
+            weight = Integer.parseInt(stringWeight);
+        } catch (NumberFormatException exception) {
+            errorToast.show();
+        }
+
+
+        //Get database to be used
+        SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+
+        //Create ContentValues object to store the values to be added
+        ContentValues values = new ContentValues();
+
+        //Check that name and weight were input (breed is optional and gender can be unknown)
+        if (!name.equals("") & !stringWeight.equals("")) {
+            values.put(PetEntry.COLUMN_PET_NAME, name);
+            values.put(PetEntry.COLUMN_PET_BREED, breed);
+            values.put(PetEntry.COLUMN_PET_GENDER, mGender);
+            values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
+        } else {
+            errorToast.show();
+        }
+
+        long newRowId = sqLiteDatabase.insert(PetEntry.TABLE_NAME, null, values);
+        if (newRowId == -1) {
+            errorToast.show();
+        } else {
+            successToast.show();
+            onBackPressed();
+        }
     }
 }

@@ -44,6 +44,13 @@ public class CatalogActivity extends AppCompatActivity {
         displayDatabaseInfo();
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        //Update Databases info string when activity is restarted
+        displayDatabaseInfo();
+    }
+
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
