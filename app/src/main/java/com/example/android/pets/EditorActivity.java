@@ -183,7 +183,7 @@ public class EditorActivity extends AppCompatActivity {
             errorToast.show();
         } else {
             successToast.show();
-            onBackPressed();
+            finish();
         }
     }
 }

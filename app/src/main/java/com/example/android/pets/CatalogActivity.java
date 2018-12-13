@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -61,12 +60,36 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Perform this raw SQL query "SELECT * FROM pets"
         // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+        Cursor cursor = db.query(PetEntry.TABLE_NAME, null, null, null, null, null, null);
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            displayView.setText("The current number of pets is " + cursor.getCount() + "\n\n");
+            while (cursor.moveToNext()) {
+                int id = cursor.getInt(cursor.getColumnIndex(PetEntry._ID));
+                String name = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME));
+                String breed = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED));
+                int intGender = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER));
+                int weight = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT));
+
+                //If breed is empty, print unknown
+                if (breed.equals("")) {
+                    breed = "Unknown";
+                }
+                
+                //Change gender from int to string
+                String gender;
+                switch (intGender) {
+                    case 1: gender = "Male"; break;
+                    case 2: gender = "Female"; break;
+                    default: gender = "Unknown";
+                }
+
+                String line = id + " - " + name + " - " + breed + " - " + gender + " - " + weight + "\n";
+                displayView.append(line);
+            }
+
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
