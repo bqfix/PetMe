@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.Nullable;
+import com.example.android.pets.data.PetContract.PetEntry;
 
 public class PetDbHelper extends SQLiteOpenHelper {
 
@@ -12,17 +13,18 @@ public class PetDbHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + PetContract.PetEntry.TABLE_NAME + " (" +
-                    PetContract.PetEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    PetContract.PetEntry.COLUMN_PET_NAME + " TEXT," +
-                    PetContract.PetEntry.COLUMN_PET_BREED + " TEXT" +
-                    PetContract.PetEntry.COLUMN_PET_BREED + " TEXT" +
-                    PetContract.PetEntry.COLUMN_PET_GENDER + " INTEGER" +
-                    PetContract.PetEntry.COLUMN_PET_WEIGHT + " INTEGER" +
-                    ")";
+            "CREATE TABLE " + PetEntry.TABLE_NAME + " (" +
+                    PetEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    PetEntry.COLUMN_PET_NAME + " TEXT NOT NULL, " +
+                    PetEntry.COLUMN_PET_BREED + " TEXT, " +
+                    PetEntry.COLUMN_PET_GENDER + " INTEGER NOT NULL, " +
+                    PetEntry.COLUMN_PET_WEIGHT + " INTEGER NOT NULL DEFAULT 0);";
+
+
+
 
     private static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS " + PetContract.PetEntry.TABLE_NAME;
+            "DROP TABLE IF EXISTS " + PetEntry.TABLE_NAME + ";";
 
 
     public PetDbHelper(@Nullable Context context) {
@@ -36,6 +38,13 @@ public class PetDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        //Discard old data, start anew
+        sqLiteDatabase.execSQL(SQL_DELETE_ENTRIES);
+        onCreate(sqLiteDatabase);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         //Discard old data, start anew
         sqLiteDatabase.execSQL(SQL_DELETE_ENTRIES);
         onCreate(sqLiteDatabase);
