@@ -1,8 +1,12 @@
 package com.example.android.pets.data;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 /**
@@ -30,8 +34,36 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-                        String sortOrder) {
-        return null;
+                        String sortOrder){
+        // Get readable database
+        SQLiteDatabase database = mDbHelper.getReadableDatabase();
+
+        // This cursor will hold the result of the query
+        Cursor cursor;
+
+        // Figure out if the URI matcher can match the URI to a specific code
+        int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                // For the PETS code, query the pets table directly with the given
+                // projection, selection, selection arguments, and sort order. The cursor
+                // could contain multiple rows of the pets table.
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            case PETS_ID:
+                // For the PET_ID code, extract out the ID from the URI.
+                selection = PetContract.PetEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+
+                // This will perform a query on the pets table where the _id equals 3 to return a
+                // Cursor containing that row of the table.
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                break;
+            default:
+                cursor = null;
+        }
+        return cursor;
     }
 
     /**
@@ -64,5 +96,23 @@ public class PetProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         return null;
+    }
+
+    /** URI matcher code for the content URI for the pets table */
+    private static final int PETS = 100;
+
+    /** URI matcher code for the content URI for a single pet in the pets table */
+    private static final int PETS_ID = 101;
+
+    /**
+     * UriMatcher object to match a content URI to a corresponding code.
+     * The input passed into the constructor represents the code to return for the root URI.
+     */
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+    //Cases for sUriMatcher
+    static {
+        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS, PETS);
+        sUriMatcher.addURI(PetContract.CONTENT_AUTHORITY, PetContract.PATH_PETS + "/#", PETS_ID);
     }
 }
