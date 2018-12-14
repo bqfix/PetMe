@@ -17,6 +17,7 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -161,10 +162,6 @@ public class EditorActivity extends AppCompatActivity {
             errorToast.show();
         }
 
-
-        //Get database to be used
-        SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
-
         //Create ContentValues object to store the values to be added
         ContentValues values = new ContentValues();
 
@@ -178,8 +175,8 @@ public class EditorActivity extends AppCompatActivity {
             errorToast.show();
         }
 
-        long newRowId = sqLiteDatabase.insert(PetEntry.TABLE_NAME, null, values);
-        if (newRowId == -1) {
+        Uri newUri= getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        if (newUri == null) {
             errorToast.show();
         } else {
             successToast.show();

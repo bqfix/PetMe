@@ -71,8 +71,18 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+        int match = sUriMatcher.match(uri);
+
+        SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+
+        switch (match) {
+            case PETS: long id = sqLiteDatabase.insert(PetContract.PetEntry.TABLE_NAME, null, contentValues);
+            return ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, id);
+            default: return null;
+
+        }
     }
+
 
     /**
      * Updates the data at the given selection and selection arguments, with the new ContentValues.
