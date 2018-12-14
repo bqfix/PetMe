@@ -14,10 +14,14 @@ import android.net.Uri;
  */
 public class PetProvider extends ContentProvider {
 
-    /** Database Helper Object */
+    /**
+     * Database Helper Object
+     */
     private PetDbHelper mDbHelper;
 
-    /** Tag for the log messages */
+    /**
+     * Tag for the log messages
+     */
     public static final String LOG_TAG = PetProvider.class.getSimpleName();
 
     /**
@@ -34,7 +38,7 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-                        String sortOrder){
+                        String sortOrder) {
         // Get readable database
         SQLiteDatabase database = mDbHelper.getReadableDatabase();
 
@@ -53,7 +57,7 @@ public class PetProvider extends ContentProvider {
             case PETS_ID:
                 // For the PET_ID code, extract out the ID from the URI.
                 selection = PetContract.PetEntry._ID + "=?";
-                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
 
                 // This will perform a query on the pets table where the _id equals 3 to return a
                 // Cursor containing that row of the table.
@@ -76,9 +80,13 @@ public class PetProvider extends ContentProvider {
         SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
 
         switch (match) {
-            case PETS: long id = sqLiteDatabase.insert(PetContract.PetEntry.TABLE_NAME, null, contentValues);
-            return ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, id);
-            default: return null;
+            case PETS:
+                if (validatePets(contentValues)) {
+                    long id = sqLiteDatabase.insert(PetContract.PetEntry.TABLE_NAME, null, contentValues);
+                    return ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, id);
+                }
+            default:
+                return null;
 
         }
     }
@@ -89,7 +97,57 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return 0;
+        int match = sUriMatcher.match(uri);
+
+        SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+
+        switch (match) {
+            //Use input values
+            case PETS:
+                if (validatePets(contentValues)) {
+                    return sqLiteDatabase.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+                }
+                return 0;
+                //Set selection to use the id passed in by the uri
+            case PETS_ID:
+                if (validatePets(contentValues)) {
+                    selection = PetContract.PetEntry._ID + "=?";
+                    selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                    return sqLiteDatabase.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+                }
+                return 0;
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Helper method to sanitize the database inputs
+     */
+    private boolean validatePets(ContentValues contentValues) {
+        //Check for validity of name, gender, and weight if applicable
+        if (contentValues.containsKey(PetContract.PetEntry.COLUMN_PET_NAME)) {
+            String name = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_NAME);
+            if (name == null || name == "") {
+                return false;
+            }
+        }
+
+        if (contentValues.containsKey(PetContract.PetEntry.COLUMN_PET_GENDER)) {
+            int gender = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_GENDER);
+            if (gender < 0 || gender > 2) {
+                return false;
+            }
+        }
+
+        if (contentValues.containsKey(PetContract.PetEntry.COLUMN_PET_WEIGHT)) {
+            int weight = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_WEIGHT);
+            if (weight < 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -108,10 +166,14 @@ public class PetProvider extends ContentProvider {
         return null;
     }
 
-    /** URI matcher code for the content URI for the pets table */
+    /**
+     * URI matcher code for the content URI for the pets table
+     */
     private static final int PETS = 100;
 
-    /** URI matcher code for the content URI for a single pet in the pets table */
+    /**
+     * URI matcher code for the content URI for a single pet in the pets table
+     */
     private static final int PETS_ID = 101;
 
     /**
