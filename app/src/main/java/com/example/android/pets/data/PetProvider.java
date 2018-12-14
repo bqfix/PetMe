@@ -108,7 +108,7 @@ public class PetProvider extends ContentProvider {
                     return sqLiteDatabase.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
                 }
                 return 0;
-                //Set selection to use the id passed in by the uri
+            //Set selection to use the id passed in by the uri
             case PETS_ID:
                 if (validatePets(contentValues)) {
                     selection = PetContract.PetEntry._ID + "=?";
@@ -155,7 +155,22 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        int match = sUriMatcher.match(uri);
+
+        SQLiteDatabase sqLiteDatabase = mDbHelper.getWritableDatabase();
+
+        switch (match) {
+            //Uses inputs as is
+            case PETS:
+                return sqLiteDatabase.delete(PetContract.PetEntry.TABLE_NAME, selection, selectionArgs);
+            //Get id from uri and use that
+            case PETS_ID:
+                selection = PetContract.PetEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                return sqLiteDatabase.delete(PetContract.PetEntry.TABLE_NAME, selection, selectionArgs);
+            default:
+                    return 0;
+        }
     }
 
     /**
