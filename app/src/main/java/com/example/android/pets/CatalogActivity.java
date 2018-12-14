@@ -77,7 +77,7 @@ public class CatalogActivity extends AppCompatActivity {
                 if (breed.equals("")) {
                     breed = "Unknown";
                 }
-                
+
                 //Change gender from int to string
                 String gender;
                 switch (intGender) {
