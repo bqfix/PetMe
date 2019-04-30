@@ -8,9 +8,6 @@ Due to the implementation of Room, and the subsequent deprecation of these APIs,
 This project was built for the Udacity Android Developement for Beginners nanodegree, starting code was accessed from:
 https://github.com/udacity/ud845-Pets/tree/starting-point
 
-More info on the USGS Earthquake API available at:
-https://earthquake.usgs.gov/fdsnws/event/1/
-
 
 ### What I accomplished in this project:
 
